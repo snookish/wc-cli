@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	counter "github.com/iamBelugax/counter"
+	counter "github.com/iamBelugax/wc-cli"
 )
 
 func TestCountWords(t *testing.T) {
