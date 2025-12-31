@@ -1,13 +1,17 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"unicode"
+	"unicode/utf8"
+)
+
+const (
+	bufferSize = 4096
 )
 
 func main() {
@@ -32,14 +36,11 @@ func main() {
 	fmt.Println("Word Count =>", wordCount)
 }
 
-func countWords(data []byte) int {
-	return len(bytes.Fields(data))
-}
-
 func CountWords(reader io.Reader) int {
-	wordCount := 0
-	bufferSize := 4096
-	isInsideWord := false
+	var wordCount int
+	var isInsideWord bool
+
+	leftover := make([]byte, 0)
 	buf := make([]byte, bufferSize)
 
 	for {
@@ -48,15 +49,24 @@ func CountWords(reader io.Reader) int {
 			break
 		}
 
-		isInsideWord = !unicode.IsSpace(rune(buf[0])) && isInsideWord
+		subbuf := append(leftover, buf[:size]...)
 
-		bufferCount := countWords(buf[:size])
-		if isInsideWord {
-			bufferCount--
+		for len(subbuf) > 0 {
+			r, rsize := utf8.DecodeRune(subbuf)
+			if r == utf8.RuneError {
+				break
+			}
+
+			subbuf = subbuf[rsize:]
+			if !unicode.IsSpace(r) && !isInsideWord {
+				wordCount++
+			}
+
+			isInsideWord = !unicode.IsSpace(r)
 		}
 
-		wordCount += bufferCount
-		isInsideWord = !unicode.IsSpace(rune(buf[size-1]))
+		leftover = leftover[:0]
+		leftover = append(leftover, subbuf...)
 	}
 
 	return wordCount
