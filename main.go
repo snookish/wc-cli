@@ -28,11 +28,18 @@ func CountWords(data []byte) int {
 	}
 
 	var wordCount int
+	var wordDetected bool
+
 	for _, char := range data {
 		if char == ' ' {
 			wordCount++
+		} else {
+			wordDetected = true
 		}
 	}
 
+	if !wordDetected {
+		return 0
+	}
 	return wordCount + 1
 }
