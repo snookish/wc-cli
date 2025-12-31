@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func main() {
@@ -23,23 +24,5 @@ func main() {
 }
 
 func CountWords(data []byte) int {
-	if len(data) == 0 {
-		return 0
-	}
-
-	var wordCount int
-	var wordDetected bool
-
-	for _, char := range data {
-		if char == ' ' {
-			wordCount++
-		} else {
-			wordDetected = true
-		}
-	}
-
-	if !wordDetected {
-		return 0
-	}
-	return wordCount + 1
+	return len(strings.Fields(string(data)))
 }

@@ -23,6 +23,36 @@ func TestCountWords(t *testing.T) {
 			input: " ",
 			wants: 0,
 		},
+		{
+			name:  "Single New Line",
+			input: "one two three\nfour five",
+			wants: 5,
+		},
+		{
+			name:  "Multi New Lines",
+			input: "one two three \n four \n five",
+			wants: 5,
+		},
+		{
+			name:  "Multi Spaces",
+			input: "This is a sentence.  This is another one.",
+			wants: 8,
+		},
+		{
+			name:  "Prefixed Multi Spaces",
+			input: "    This is a sentence.  This is another one.",
+			wants: 8,
+		},
+		{
+			name:  "Suffixed Multi Spaces",
+			input: "This is a sentence.  This is another one.    ",
+			wants: 8,
+		},
+		{
+			name:  "Tab Character",
+			input: "This is\ta sentence.\tThis is \tanother one.",
+			wants: 8,
+		},
 	}
 
 	for _, tc := range testCases {
