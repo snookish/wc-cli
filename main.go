@@ -17,13 +17,21 @@ const (
 func main() {
 	log.SetFlags(0)
 	if len(os.Args) < 2 {
-		log.Fatalln("error: must provide at least one filename")
+		log.Fatalln("wc: no filename provided")
 	}
 
 	total := 0
 	args := os.Args[1:]
+	var hasErrorOccurred bool
+
 	for _, filename := range args {
-		wordCount := CountWordsInFile(filename)
+		wordCount, err := CountWordsInFile(filename)
+		if err != nil {
+			hasErrorOccurred = true
+			fmt.Fprintln(os.Stderr, "wc:", err)
+			continue
+		}
+
 		total += wordCount
 		fmt.Println(wordCount, filename)
 	}
@@ -31,20 +39,24 @@ func main() {
 	if len(args) > 1 {
 		fmt.Println(total, "total")
 	}
+
+	if hasErrorOccurred {
+		os.Exit(1)
+	}
 }
 
-func CountWordsInFile(filename string) int {
+func CountWordsInFile(filename string) (int, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Fatalln("failed to open file :", err)
+		return 0, err
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			log.Fatalln("failed to close file :", err)
+			log.Fatalln("wc: ", err)
 		}
 	}()
 
-	return CountWordsUsingBufioScanner(file)
+	return CountWordsUsingBufioScanner(file), nil
 }
 
 // CountWordsUsingBufioScanner counts words using a buffered scanner.
