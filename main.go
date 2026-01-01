@@ -14,7 +14,7 @@ import (
 func main() {
 	log.SetFlags(0)
 
-	var opts display.DisplayOpts
+	var opts display.Options
 	flag.BoolVar(&opts.ShowBytes, "c", false, "Used to toggle whether to show bytes")
 	flag.BoolVar(&opts.ShowWords, "w", false, "Used to toggle whether to show word count")
 	flag.BoolVar(&opts.ShowLines, "l", false, "Used to toggle whether to show lines count")

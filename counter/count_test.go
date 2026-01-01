@@ -240,39 +240,39 @@ func TestCountsPrint(t *testing.T) {
 	testCases := []struct {
 		name   string
 		counts counter.Counts
-		opts   display.DisplayOpts
+		opts   display.Options
 		suffix []string
 		wants  string
 	}{
 		{
 			name:   "AllEnabledNoSuffix",
 			counts: counter.Counts{Words: 1, Lines: 2, Bytes: 3},
-			opts:   display.DisplayOpts{ShowWords: true, ShowLines: true, ShowBytes: true},
+			opts:   display.Options{ShowWords: true, ShowLines: true, ShowBytes: true},
 			wants:  "1\t2\t3\t\n",
 		},
 		{
 			name:   "AllEnabledWithFilename",
 			counts: counter.Counts{Words: 1, Lines: 2, Bytes: 3},
-			opts:   display.DisplayOpts{ShowWords: true, ShowLines: true, ShowBytes: true},
+			opts:   display.Options{ShowWords: true, ShowLines: true, ShowBytes: true},
 			suffix: []string{"file.txt"},
 			wants:  "1\t2\t3\t file.txt\n",
 		},
 		{
 			name:   "WordsOnly",
 			counts: counter.Counts{Words: 5, Lines: 10, Bytes: 20},
-			opts:   display.DisplayOpts{ShowWords: true},
+			opts:   display.Options{ShowWords: true},
 			wants:  "5\t\n",
 		},
 		{
 			name:   "LinesAndBytes",
 			counts: counter.Counts{Words: 5, Lines: 10, Bytes: 20},
-			opts:   display.DisplayOpts{ShowLines: true, ShowBytes: true},
+			opts:   display.Options{ShowLines: true, ShowBytes: true},
 			wants:  "10\t20\t\n",
 		},
 		{
 			name:   "ZeroValuesWithSuffix",
 			counts: counter.Counts{},
-			opts:   display.DisplayOpts{ShowWords: true, ShowLines: true, ShowBytes: true},
+			opts:   display.Options{ShowWords: true, ShowLines: true, ShowBytes: true},
 			suffix: []string{"empty"},
 			wants:  "0\t0\t0\t empty\n",
 		},

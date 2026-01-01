@@ -23,7 +23,7 @@ type Counts struct {
 	Bytes int
 }
 
-func (c *Counts) Print(w io.Writer, opts display.DisplayOpts, suffixes ...string) {
+func (c *Counts) Print(w io.Writer, opts display.Options, suffixes ...string) {
 	result := make([]string, 0)
 
 	if opts.ShouldShowWords() {
