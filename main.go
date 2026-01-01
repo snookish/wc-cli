@@ -11,7 +11,7 @@ import (
 func main() {
 	log.SetFlags(0)
 
-	total := 0
+	var total counter.Counts
 	filenames := os.Args[1:]
 	var hasErrorOccurred bool
 
@@ -23,18 +23,19 @@ func main() {
 			continue
 		}
 
-		total += counts.Words
-		fmt.Println(counts.Lines, counts.Words, counts.Bytes, filename)
+		total.Words += counts.Words
+		total.Bytes += counts.Bytes
+		total.Lines += counts.Lines
+		counts.Print(os.Stdout, filename)
 	}
 
 	if len(filenames) == 0 {
-		counts := counter.CountAll(os.Stdin)
-		fmt.Println(counts.Lines, counts.Words, counts.Bytes)
+		counter.CountAll(os.Stdin).Print(os.Stdout)
 		os.Exit(0)
 	}
 
 	if len(filenames) > 1 {
-		fmt.Println(total, "total")
+		total.Print(os.Stdout, "total")
 	}
 
 	if hasErrorOccurred {

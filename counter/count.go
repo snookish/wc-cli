@@ -2,6 +2,7 @@ package counter
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"unicode"
@@ -17,6 +18,14 @@ type Counts struct {
 	Words int
 	Lines int
 	Bytes int
+}
+
+func (c Counts) Print(w io.Writer, suffix ...string) {
+	fmt.Fprint(w, c.Lines, c.Words, c.Bytes)
+	if len(suffix) > 0 {
+		fmt.Fprint(w, " ", suffix[len(suffix)-1])
+	}
+	fmt.Fprint(w, "\n")
 }
 
 func CountAll(r io.ReadSeeker) Counts {

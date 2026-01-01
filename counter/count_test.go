@@ -1,6 +1,7 @@
 package counter_test
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -68,7 +69,7 @@ func TestCountWords(t *testing.T) {
 			reader := strings.NewReader(tc.input)
 			res := counter.CountWords(reader)
 			if res != tc.wants {
-				t.Logf("expected %d, got %d", tc.wants, res)
+				t.Logf("expected: %d, got: %d", tc.wants, res)
 				t.Fail()
 			}
 		})
@@ -133,7 +134,7 @@ func TestCountWordsBuf(t *testing.T) {
 			reader := strings.NewReader(tc.input)
 			res := counter.CountWordsBuf(reader)
 			if res != tc.wants {
-				t.Logf("expected %d, got %d", tc.wants, res)
+				t.Logf("expected: %d, got: %d", tc.wants, res)
 				t.Fail()
 			}
 		})
@@ -198,7 +199,7 @@ func TestCountWordsRaw(t *testing.T) {
 			reader := strings.NewReader(tc.input)
 			res := counter.CountWordsRaw(reader)
 			if res != tc.wants {
-				t.Logf("expected %d, got %d", tc.wants, res)
+				t.Logf("expected: %d, got: %d", tc.wants, res)
 				t.Fail()
 			}
 		})
@@ -258,7 +259,7 @@ func TestCountLines(t *testing.T) {
 			reader := strings.NewReader(tc.input)
 			res := counter.CountLines(reader)
 			if res != tc.wants {
-				t.Logf("expected %d, got %d", tc.wants, res)
+				t.Logf("expected: %d, got: %d", tc.wants, res)
 				t.Fail()
 			}
 		})
@@ -298,7 +299,7 @@ func TestCountBytes(t *testing.T) {
 			reader := strings.NewReader(tc.input)
 			res := counter.CountBytes(reader)
 			if res != tc.wants {
-				t.Logf("expected %d, got %d", tc.wants, res)
+				t.Logf("expected: %d, got: %d", tc.wants, res)
 				t.Fail()
 			}
 		})
@@ -339,17 +340,79 @@ func TestCountAll(t *testing.T) {
 			res := counter.CountAll(reader)
 
 			if res.Bytes != tc.wants.Bytes {
-				t.Logf("expected %d bytes, got %d bytes", tc.wants, res)
+				t.Logf("expected: %d bytes, got: %d bytes", tc.wants, res)
 				t.Fail()
 			}
 
 			if res.Lines != tc.wants.Lines {
-				t.Logf("expected %d lines, got %d lines", tc.wants, res)
+				t.Logf("expected: %d lines, got: %d lines", tc.wants, res)
 				t.Fail()
 			}
 
 			if res.Words != tc.wants.Words {
-				t.Logf("expected %d words, got %d words", tc.wants, res)
+				t.Logf("expected: %d words, got: %d words", tc.wants, res)
+				t.Fail()
+			}
+		})
+	}
+}
+
+func TestPrintCounts(t *testing.T) {
+	testCases := []struct {
+		name  string
+		input struct {
+			filename string
+			counts   counter.Counts
+		}
+		wants string
+	}{
+		{
+			name: "Empty Spaces",
+			input: struct {
+				filename string
+				counts   counter.Counts
+			}{
+				filename: "words.txt",
+				counts:   counter.Counts{Words: 0, Lines: 0, Bytes: 0},
+			},
+			wants: "0 0 0 words.txt\n",
+		},
+		{
+			name: "Empty Filename",
+			input: struct {
+				filename string
+				counts   counter.Counts
+			}{
+				counts: counter.Counts{Words: 0, Lines: 0, Bytes: 0},
+			},
+			wants: "0 0 0\n",
+		},
+		{
+			name: "5 Words, 5 Lines and 5 Bytes",
+			input: struct {
+				filename string
+				counts   counter.Counts
+			}{
+				filename: "words.txt",
+				counts:   counter.Counts{Words: 5, Lines: 5, Bytes: 5},
+			},
+			wants: "5 5 5 words.txt\n",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			buf := bytes.Buffer{}
+
+			if tc.input.filename != "" {
+				tc.input.counts.Print(&buf, tc.input.filename)
+			} else {
+				tc.input.counts.Print(&buf)
+			}
+
+			str := buf.String()
+			if str != tc.wants {
+				t.Logf("expected: %s, got: %s", tc.wants, str)
 				t.Fail()
 			}
 		})
