@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/iamBelugax/wc-cli/counter"
+	"github.com/iamBelugax/wc-cli/display"
 )
 
 const testText = `I was walking through the park, feeling the cool breeze, when I noticed a small group of friends chatting. One of them was holding a book titled "Мечта" (Russian for "Dream"). The girl beside him smiled and said, "오늘 날씨 정말 좋아요!" (Korean for "The weather is really nice today!"). Nearby, a boy was practicing his "空手" (Japanese for "karate") moves, his movements smooth and precise. It felt like the perfect day, where different cultures and languages came together in harmony.
@@ -234,43 +235,44 @@ func TestCountsAdd(t *testing.T) {
 		}
 	}
 }
+
 func TestCountsPrint(t *testing.T) {
 	testCases := []struct {
 		name   string
 		counts counter.Counts
-		opts   counter.DisplayOpts
+		opts   display.DisplayOpts
 		suffix []string
 		wants  string
 	}{
 		{
 			name:   "AllEnabledNoSuffix",
 			counts: counter.Counts{Words: 1, Lines: 2, Bytes: 3},
-			opts:   counter.DisplayOpts{ShowWords: true, ShowLines: true, ShowBytes: true},
+			opts:   display.DisplayOpts{ShowWords: true, ShowLines: true, ShowBytes: true},
 			wants:  "1\t2\t3\t\n",
 		},
 		{
 			name:   "AllEnabledWithFilename",
 			counts: counter.Counts{Words: 1, Lines: 2, Bytes: 3},
-			opts:   counter.DisplayOpts{ShowWords: true, ShowLines: true, ShowBytes: true},
+			opts:   display.DisplayOpts{ShowWords: true, ShowLines: true, ShowBytes: true},
 			suffix: []string{"file.txt"},
 			wants:  "1\t2\t3\t file.txt\n",
 		},
 		{
 			name:   "WordsOnly",
 			counts: counter.Counts{Words: 5, Lines: 10, Bytes: 20},
-			opts:   counter.DisplayOpts{ShowWords: true},
+			opts:   display.DisplayOpts{ShowWords: true},
 			wants:  "5\t\n",
 		},
 		{
 			name:   "LinesAndBytes",
 			counts: counter.Counts{Words: 5, Lines: 10, Bytes: 20},
-			opts:   counter.DisplayOpts{ShowLines: true, ShowBytes: true},
+			opts:   display.DisplayOpts{ShowLines: true, ShowBytes: true},
 			wants:  "10\t20\t\n",
 		},
 		{
 			name:   "ZeroValuesWithSuffix",
 			counts: counter.Counts{},
-			opts:   counter.DisplayOpts{ShowWords: true, ShowLines: true, ShowBytes: true},
+			opts:   display.DisplayOpts{ShowWords: true, ShowLines: true, ShowBytes: true},
 			suffix: []string{"empty"},
 			wants:  "0\t0\t0\t empty\n",
 		},

@@ -8,15 +8,16 @@ import (
 	"text/tabwriter"
 
 	"github.com/iamBelugax/wc-cli/counter"
+	"github.com/iamBelugax/wc-cli/display"
 )
 
 func main() {
 	log.SetFlags(0)
 
-	var displayOpts counter.DisplayOpts
-	flag.BoolVar(&displayOpts.ShowBytes, "c", false, "Used to toggle whether to show bytes")
-	flag.BoolVar(&displayOpts.ShowWords, "w", false, "Used to toggle whether to show word count")
-	flag.BoolVar(&displayOpts.ShowLines, "l", false, "Used to toggle whether to show lines count")
+	var opts display.DisplayOpts
+	flag.BoolVar(&opts.ShowBytes, "c", false, "Used to toggle whether to show bytes")
+	flag.BoolVar(&opts.ShowWords, "w", false, "Used to toggle whether to show word count")
+	flag.BoolVar(&opts.ShowLines, "l", false, "Used to toggle whether to show lines count")
 	flag.Parse()
 
 	var total counter.Counts
@@ -34,18 +35,18 @@ func main() {
 		}
 
 		total.Add(counts)
-		counts.Print(tw, displayOpts, filename)
+		counts.Print(tw, opts, filename)
 	}
 
 	if len(filenames) == 0 {
 		counts := counter.CountAll(os.Stdin)
-		counts.Print(tw, displayOpts)
+		counts.Print(tw, opts)
 		tw.Flush()
 		os.Exit(0)
 	}
 
 	if len(filenames) > 1 {
-		total.Print(tw, displayOpts, "total")
+		total.Print(tw, opts, "total")
 	}
 
 	tw.Flush()

@@ -9,38 +9,13 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/iamBelugax/wc-cli/display"
 )
 
 const (
 	bufSize = 4096
 )
-
-type DisplayOpts struct {
-	ShowWords bool
-	ShowLines bool
-	ShowBytes bool
-}
-
-func (d *DisplayOpts) ShouldShowWords() bool {
-	if !d.ShowBytes && !d.ShowLines && !d.ShowWords {
-		return true
-	}
-	return d.ShowWords
-}
-
-func (d *DisplayOpts) ShouldShowLines() bool {
-	if !d.ShowBytes && !d.ShowLines && !d.ShowWords {
-		return true
-	}
-	return d.ShowLines
-}
-
-func (d *DisplayOpts) ShouldShowBytes() bool {
-	if !d.ShowBytes && !d.ShowLines && !d.ShowWords {
-		return true
-	}
-	return d.ShowBytes
-}
 
 type Counts struct {
 	Words int
@@ -48,7 +23,7 @@ type Counts struct {
 	Bytes int
 }
 
-func (c *Counts) Print(w io.Writer, opts DisplayOpts, suffixes ...string) {
+func (c *Counts) Print(w io.Writer, opts display.DisplayOpts, suffixes ...string) {
 	result := make([]string, 0)
 
 	if opts.ShouldShowWords() {
