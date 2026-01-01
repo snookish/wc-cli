@@ -50,11 +50,7 @@ func CountWordsInFile(filename string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer func() {
-		if err := file.Close(); err != nil {
-			log.Fatalln("wc: ", err)
-		}
-	}()
+	defer file.Close()
 
 	return CountWordsUsingBufioScanner(file), nil
 }
