@@ -9,124 +9,146 @@ import (
 )
 
 const (
-	bufferSize = 4096
+	offsetStart = 0
+	bufSize     = 4096
 )
 
-func CountWordsInFile(filename string) (int, error) {
-	file, err := os.Open(filename)
+type Counts struct {
+	Words int
+	Lines int
+	Bytes int
+}
+
+func CountAll(r io.ReadSeeker) Counts {
+	words := CountWords(r)
+
+	r.Seek(offsetStart, io.SeekStart)
+	lines := CountLines(r)
+
+	r.Seek(offsetStart, io.SeekStart)
+	bytes := CountBytes(r)
+
+	return Counts{
+		Words: words,
+		Lines: lines,
+		Bytes: bytes,
+	}
+}
+
+func CountFile(path string) (Counts, error) {
+	f, err := os.Open(path)
 	if err != nil {
-		return 0, err
+		return Counts{}, err
 	}
-	defer file.Close()
+	defer f.Close()
 
-	return CountWordsUsingBufioScanner(file), nil
+	return CountAll(f), nil
 }
 
-func CountWords(reader io.Reader) int {
-	return CountWordsUsingBufioScanner(reader)
-}
+// CountWords counts words using a buffered scanner.
+func CountWords(r io.Reader) int {
+	s := bufio.NewScanner(r)
+	s.Split(bufio.ScanWords)
 
-// CountWordsUsingBufioScanner counts words using a buffered scanner.
-func CountWordsUsingBufioScanner(reader io.Reader) int {
-	var wordCount int
-	scanner := bufio.NewScanner(reader)
-	scanner.Split(bufio.ScanWords)
-
-	for scanner.Scan() {
-		_ = scanner.Text()
-		wordCount++
+	n := 0
+	for s.Scan() {
+		_ = s.Text()
+		n++
 	}
 
-	return wordCount
+	return n
 }
 
-// CountWordsUsingBufioReader counts words using bufio.Reader and checking for whitespace.
-func CountWordsUsingBufioReader(reader io.Reader) int {
-	var wordCount int
-	var isInsideWord bool
-	bufReader := bufio.NewReaderSize(reader, bufferSize)
+// CountWordsBuf counts words using bufio.Reader and checking for whitespace.
+func CountWordsBuf(r io.Reader) int {
+	br := bufio.NewReaderSize(r, bufSize)
+
+	n := 0
+	isInsideWord := false
 
 	for {
-		r, _, err := bufReader.ReadRune()
+		ch, _, err := br.ReadRune()
 		if err != nil {
 			break
 		}
 
 		// If the rune is not a space and we're not inside a word, it's the start of a new word
-		if !unicode.IsSpace(r) && !isInsideWord {
-			wordCount++
+		if !unicode.IsSpace(ch) && !isInsideWord {
+			n++
 		}
 
-		isInsideWord = !unicode.IsSpace(r)
+		isInsideWord = !unicode.IsSpace(ch)
 	}
 
-	return wordCount
+	return n
 }
 
-// CustomCountWords is a custom implementation for counting words.
-func CustomCountWords(reader io.Reader) int {
-	var wordCount int
-	var isInsideWord bool
+// CountWordsRaw is a custom implementation for counting words.
+func CountWordsRaw(r io.Reader) int {
+	buf := make([]byte, bufSize)
+	leftover := make([]byte, 0)
+
+	n := 0
+	isInsideWord := false
 
 	// Buffers for reading input and storing leftover bytes.
-	leftover := make([]byte, 0)
-	buf := make([]byte, bufferSize)
-
 	for {
-		size, err := reader.Read(buf)
+		k, err := r.Read(buf)
 		if err != nil {
 			break
 		}
 
 		// Append any leftover bytes from previous reads to the current buffer.
-		subbuf := append(leftover, buf[:size]...)
+		data := append(leftover, buf[:k]...)
 
-		for len(subbuf) > 0 {
-			r, rsize := utf8.DecodeRune(subbuf)
-			if r == utf8.RuneError {
+		for len(data) > 0 {
+			ch, size := utf8.DecodeRune(data)
+			if ch == utf8.RuneError {
 				break
 			}
 
 			// If the rune is not whitespace and we're not inside a word, it's a new word.
-			subbuf = subbuf[rsize:]
-			if !unicode.IsSpace(r) && !isInsideWord {
-				wordCount++
+			if !unicode.IsSpace(ch) && !isInsideWord {
+				n++
 			}
 
-			isInsideWord = !unicode.IsSpace(r)
+			isInsideWord = !unicode.IsSpace(ch)
+			data = data[size:]
 		}
 
 		// Store any leftover bytes that didn't form a complete rune.
 		leftover = leftover[:0]
-		leftover = append(leftover, subbuf...)
+		leftover = append(leftover, data...)
 	}
 
-	return wordCount
+	return n
 }
 
-func CountLines(reader io.Reader) int {
-	var linesCount int
-	bufReader := bufio.NewReaderSize(reader, bufferSize)
+// CountLines counts newline characters.
+func CountLines(r io.Reader) int {
+	br := bufio.NewReaderSize(r, bufSize)
+	n := 0
 
 	for {
-		r, _, err := bufReader.ReadRune()
+		ch, _, err := br.ReadRune()
 		if err != nil {
 			break
 		}
 
-		if r == '\n' {
-			linesCount++
+		if ch == '\n' {
+			n++
 		}
 	}
 
-	return linesCount
+	return n
 }
 
-func CountBytes(reader io.Reader) int {
-	bytesCount, err := io.Copy(io.Discard, reader)
+// CountBytes counts the total number of bytes in the reader.
+func CountBytes(r io.Reader) int {
+	n, err := io.Copy(io.Discard, r)
 	if err != nil {
 		return 0
 	}
 
-	return int(bytesCount)
+	return int(n)
 }

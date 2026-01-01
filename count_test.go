@@ -10,7 +10,7 @@ import (
 const testText = `I was walking through the park, feeling the cool breeze, when I noticed a small group of friends chatting. One of them was holding a book titled "Мечта" (Russian for "Dream"). The girl beside him smiled and said, "오늘 날씨 정말 좋아요!" (Korean for "The weather is really nice today!"). Nearby, a boy was practicing his "空手" (Japanese for "karate") moves, his movements smooth and precise. It felt like the perfect day, where different cultures and languages came together in harmony.
 `
 
-func TestCountWordsUsingBufioScanner(t *testing.T) {
+func TestCountWords(t *testing.T) {
 	testCases := []struct {
 		name  string
 		input string
@@ -66,7 +66,7 @@ func TestCountWordsUsingBufioScanner(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			reader := strings.NewReader(tc.input)
-			res := counter.CountWordsUsingBufioScanner(reader)
+			res := counter.CountWords(reader)
 			if res != tc.wants {
 				t.Logf("expected %d, got %d", tc.wants, res)
 				t.Fail()
@@ -75,7 +75,7 @@ func TestCountWordsUsingBufioScanner(t *testing.T) {
 	}
 }
 
-func TestCountWordsUsingBufioReader(t *testing.T) {
+func TestCountWordsBuf(t *testing.T) {
 	testCases := []struct {
 		name  string
 		input string
@@ -131,7 +131,7 @@ func TestCountWordsUsingBufioReader(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			reader := strings.NewReader(tc.input)
-			res := counter.CountWordsUsingBufioReader(reader)
+			res := counter.CountWordsBuf(reader)
 			if res != tc.wants {
 				t.Logf("expected %d, got %d", tc.wants, res)
 				t.Fail()
@@ -140,7 +140,7 @@ func TestCountWordsUsingBufioReader(t *testing.T) {
 	}
 }
 
-func TestCustomCountWords(t *testing.T) {
+func TestCountWordsRaw(t *testing.T) {
 	testCases := []struct {
 		name  string
 		input string
@@ -196,7 +196,7 @@ func TestCustomCountWords(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			reader := strings.NewReader(tc.input)
-			res := counter.CustomCountWords(reader)
+			res := counter.CountWordsRaw(reader)
 			if res != tc.wants {
 				t.Logf("expected %d, got %d", tc.wants, res)
 				t.Fail()
@@ -305,27 +305,27 @@ func TestCountBytes(t *testing.T) {
 	}
 }
 
-func BenchmarkCountWordsUsingBufioScanner(b *testing.B) {
+func BenchmarkCountWords(b *testing.B) {
 	data := strings.Repeat(testText, 10000)
 	for b.Loop() {
 		reader := strings.NewReader(data)
-		_ = counter.CountWordsUsingBufioScanner(reader)
+		_ = counter.CountWords(reader)
 	}
 }
 
-func BenchmarkCountWordsUsingBufioReader(b *testing.B) {
+func BenchmarkCountWordsBuf(b *testing.B) {
 	data := strings.Repeat(testText, 10000)
 	for b.Loop() {
 		reader := strings.NewReader(data)
-		_ = counter.CountWordsUsingBufioReader(reader)
+		_ = counter.CountWordsBuf(reader)
 	}
 }
 
-func BenchmarkCustomCountWords(b *testing.B) {
+func BenchmarkCountWordsRaw(b *testing.B) {
 	data := strings.Repeat(testText, 10000)
 	for b.Loop() {
 		reader := strings.NewReader(data)
-		_ = counter.CustomCountWords(reader)
+		_ = counter.CountWordsRaw(reader)
 	}
 }
 

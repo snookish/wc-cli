@@ -14,19 +14,19 @@ func main() {
 	var hasErrorOccurred bool
 
 	for _, filename := range filenames {
-		wordCount, err := CountWordsInFile(filename)
+		counts, err := CountFile(filename)
 		if err != nil {
 			hasErrorOccurred = true
 			fmt.Fprintln(os.Stderr, "wc:", err)
 			continue
 		}
 
-		total += wordCount
-		fmt.Println(wordCount, filename)
+		total += counts.Words
+		fmt.Println(counts, filename)
 	}
 
 	if len(filenames) == 0 {
-		fmt.Println(CountWords(os.Stdin))
+		fmt.Println(CountAll(os.Stdin))
 		os.Exit(0)
 	}
 
