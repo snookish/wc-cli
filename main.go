@@ -16,15 +16,12 @@ const (
 
 func main() {
 	log.SetFlags(0)
-	if len(os.Args) < 2 {
-		log.Fatalln("wc: no filename provided")
-	}
 
 	total := 0
-	args := os.Args[1:]
+	filenames := os.Args[1:]
 	var hasErrorOccurred bool
 
-	for _, filename := range args {
+	for _, filename := range filenames {
 		wordCount, err := CountWordsInFile(filename)
 		if err != nil {
 			hasErrorOccurred = true
@@ -36,7 +33,14 @@ func main() {
 		fmt.Println(wordCount, filename)
 	}
 
-	if len(args) > 1 {
+	if len(filenames) == 0 {
+		wordCount := CountWordsUsingBufioScanner(os.Stdin)
+		fmt.Println()
+		fmt.Println(wordCount)
+		os.Exit(0)
+	}
+
+	if len(filenames) > 1 {
 		fmt.Println(total, "total")
 	}
 
