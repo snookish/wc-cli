@@ -103,3 +103,21 @@ func CustomCountWords(reader io.Reader) int {
 
 	return wordCount
 }
+
+func CountLines(reader io.Reader) int {
+	var linesCount int
+	bufReader := bufio.NewReaderSize(reader, bufferSize)
+
+	for {
+		r, _, err := bufReader.ReadRune()
+		if err != nil {
+			break
+		}
+
+		if r == '\n' {
+			linesCount++
+		}
+	}
+
+	return linesCount
+}

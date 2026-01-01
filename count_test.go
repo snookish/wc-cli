@@ -205,6 +205,66 @@ func TestCustomCountWords(t *testing.T) {
 	}
 }
 
+func TestCountLines(t *testing.T) {
+	testCases := []struct {
+		name  string
+		input string
+		wants int
+	}{
+		{
+			name:  "Empty Input",
+			input: "",
+			wants: 0,
+		},
+		{
+			name:  "Single New Line",
+			input: "This is a sentence\n",
+			wants: 1,
+		},
+		{
+			name:  "Multi New Lines",
+			input: "This is a sentence\n\n\n",
+			wants: 3,
+		},
+		{
+			name:  "No New Line",
+			input: "This is a sentence",
+			wants: 0,
+		},
+		{
+			name:  "No New Line at the end",
+			input: "This is a sentence\n. This is another sentence.",
+			wants: 1,
+		},
+		{
+			name:  "New Line at the beginning",
+			input: "\nThis is a sentence\n. This is another sentence.",
+			wants: 2,
+		},
+		{
+			name:  "Multi New lines",
+			input: "\n\n\n\n\n.",
+			wants: 5,
+		},
+		{
+			name:  "Multi Word New lines",
+			input: "one\ntwo\nthree\nfour\nfive\n",
+			wants: 5,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			reader := strings.NewReader(tc.input)
+			res := counter.CountLines(reader)
+			if res != tc.wants {
+				t.Logf("expected %d, got %d", tc.wants, res)
+				t.Fail()
+			}
+		})
+	}
+}
+
 func BenchmarkCountWordsUsingBufioScanner(b *testing.B) {
 	data := strings.Repeat(testText, 10000)
 	for b.Loop() {
@@ -226,5 +286,13 @@ func BenchmarkCustomCountWords(b *testing.B) {
 	for b.Loop() {
 		reader := strings.NewReader(data)
 		_ = counter.CustomCountWords(reader)
+	}
+}
+
+func BenchmarkCountLines(b *testing.B) {
+	data := strings.Repeat(testText, 10000)
+	for b.Loop() {
+		reader := strings.NewReader(data)
+		_ = counter.CountLines(reader)
 	}
 }
