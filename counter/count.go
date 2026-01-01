@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	offsetStart = 0
-	bufSize     = 4096
+	bufSize = 4096
 )
 
 type DisplayOpts struct {
@@ -79,20 +78,30 @@ func (c *Counts) Add(other Counts) {
 	c.Words += other.Words
 }
 
-func CountAll(r io.ReadSeeker) Counts {
-	words := CountWords(r)
+func CountAll(r io.Reader) Counts {
+	var counts Counts
+	var isInsideWord bool
+	br := bufio.NewReaderSize(r, bufSize)
 
-	r.Seek(offsetStart, io.SeekStart)
-	lines := CountLines(r)
+	for {
+		ch, size, err := br.ReadRune()
+		if err != nil {
+			break
+		}
 
-	r.Seek(offsetStart, io.SeekStart)
-	bytes := CountBytes(r)
+		if !unicode.IsSpace(ch) && !isInsideWord {
+			counts.Words++
+		}
 
-	return Counts{
-		Words: words,
-		Lines: lines,
-		Bytes: bytes,
+		if ch == '\n' {
+			counts.Lines++
+		}
+
+		counts.Bytes += size
+		isInsideWord = !unicode.IsSpace(ch)
 	}
+
+	return counts
 }
 
 func CountFile(path string) (Counts, error) {
