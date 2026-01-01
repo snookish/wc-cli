@@ -1,4 +1,4 @@
-package main
+package counter
 
 import (
 	"bufio"
@@ -13,13 +13,13 @@ const (
 	bufSize     = 4096
 )
 
-type Counts struct {
+type counts struct {
 	Words int
 	Lines int
 	Bytes int
 }
 
-func CountAll(r io.ReadSeeker) Counts {
+func CountAll(r io.ReadSeeker) counts {
 	words := CountWords(r)
 
 	r.Seek(offsetStart, io.SeekStart)
@@ -28,21 +28,46 @@ func CountAll(r io.ReadSeeker) Counts {
 	r.Seek(offsetStart, io.SeekStart)
 	bytes := CountBytes(r)
 
-	return Counts{
+	return counts{
 		Words: words,
 		Lines: lines,
 		Bytes: bytes,
 	}
 }
 
-func CountFile(path string) (Counts, error) {
+func CountFile(path string) (counts, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return Counts{}, err
+		return counts{}, err
 	}
 	defer f.Close()
 
 	return CountAll(f), nil
+}
+
+// CountLines counts newline characters.
+func CountLines(r io.Reader) int {
+	br := bufio.NewReaderSize(r, bufSize)
+	n := 0
+
+	for {
+		ch, _, err := br.ReadRune()
+		if err != nil {
+			break
+		}
+
+		if ch == '\n' {
+			n++
+		}
+	}
+
+	return n
+}
+
+// CountBytes counts the total number of bytes in the reader.
+func CountBytes(r io.Reader) int {
+	n, _ := io.Copy(io.Discard, r)
+	return int(n)
 }
 
 // CountWords counts words using a buffered scanner.
@@ -122,33 +147,4 @@ func CountWordsRaw(r io.Reader) int {
 	}
 
 	return n
-}
-
-// CountLines counts newline characters.
-func CountLines(r io.Reader) int {
-	br := bufio.NewReaderSize(r, bufSize)
-	n := 0
-
-	for {
-		ch, _, err := br.ReadRune()
-		if err != nil {
-			break
-		}
-
-		if ch == '\n' {
-			n++
-		}
-	}
-
-	return n
-}
-
-// CountBytes counts the total number of bytes in the reader.
-func CountBytes(r io.Reader) int {
-	n, err := io.Copy(io.Discard, r)
-	if err != nil {
-		return 0
-	}
-
-	return int(n)
 }

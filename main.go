@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/iamBelugax/wc-cli/counter"
 )
 
 func main() {
@@ -14,7 +16,7 @@ func main() {
 	var hasErrorOccurred bool
 
 	for _, filename := range filenames {
-		counts, err := CountFile(filename)
+		counts, err := counter.CountFile(filename)
 		if err != nil {
 			hasErrorOccurred = true
 			fmt.Fprintln(os.Stderr, "wc:", err)
@@ -22,11 +24,12 @@ func main() {
 		}
 
 		total += counts.Words
-		fmt.Println(counts, filename)
+		fmt.Println(counts.Lines, counts.Words, counts.Bytes, filename)
 	}
 
 	if len(filenames) == 0 {
-		fmt.Println(CountAll(os.Stdin))
+		counts := counter.CountAll(os.Stdin)
+		fmt.Println(counts.Lines, counts.Words, counts.Bytes)
 		os.Exit(0)
 	}
 
