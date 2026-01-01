@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"text/tabwriter"
 
 	counter "github.com/iamBelugax/wc-cli"
@@ -21,22 +22,7 @@ func main() {
 	log.SetFlags(0)
 
 	filenames := flag.Args()
-	var hasErrorOccurred bool
-
-	var total counter.Counts
 	tw := tabwriter.NewWriter(os.Stdout, 0, 8, 1, ' ', tabwriter.AlignRight)
-
-	for _, filename := range filenames {
-		counts, err := counter.CountFile(filename)
-		if err != nil {
-			hasErrorOccurred = true
-			fmt.Fprintln(os.Stderr, "wc:", err)
-			continue
-		}
-
-		total.Add(counts)
-		counts.Print(tw, opts, filename)
-	}
 
 	if len(filenames) == 0 {
 		counts := counter.CountAll(os.Stdin)
@@ -45,10 +31,38 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(filenames) > 1 {
-		total.Print(tw, opts, "total")
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	wg.Add(len(filenames))
+
+	var totals counter.Counts
+	var hasErrorOccurred bool
+
+	for _, filename := range filenames {
+		go func() {
+			defer wg.Done()
+
+			counts, err := counter.CountFile(filename)
+			if err != nil {
+				mu.Lock()
+				hasErrorOccurred = true
+				mu.Unlock()
+
+				fmt.Fprintln(os.Stderr, "wc:", err)
+				return
+			}
+
+			mu.Lock()
+			totals.Add(counts)
+			mu.Unlock()
+
+			counts.Print(tw, opts, filename)
+		}()
 	}
 
+	wg.Wait()
+
+	totals.Print(tw, opts, "total")
 	tw.Flush()
 
 	if hasErrorOccurred {
