@@ -89,7 +89,7 @@ func CountFile(path string) (Counts, error) {
 	}
 	defer f.Close()
 
-	return CountAllTeaReader(f), nil
+	return CountAllIOPipe(f), nil
 }
 
 // CountLines counts newline characters.
@@ -211,6 +211,71 @@ func CountAllTeaReader(r io.Reader) Counts {
 	return Counts{
 		Lines: linesCount,
 		Words: wordsCount,
+		Bytes: bytesCount,
+	}
+}
+
+func CountAllIOPipe(r io.Reader) Counts {
+	pr1, pw1 := io.Pipe()
+	pr2, pw2 := io.Pipe()
+
+	linesReader := io.TeeReader(r, pw1)
+	wordsReader := io.TeeReader(pr1, pw2)
+	bytesReader := pr2
+
+	// var linesCount, wordsCount, bytesCount int
+	// var wg sync.WaitGroup
+	// wg.Add(3)
+
+	// go func() {
+	// 	defer func() {
+	// 		wg.Done()
+	// 		pw1.Close()
+	// 	}()
+	// 	linesCount = CountLines(linesReader)
+	// }()
+
+	// go func() {
+	// 	defer func() {
+	// 		wg.Done()
+	// 		pw2.Close()
+	// 	}()
+	// 	wordsCount = CountWords(wordsReader)
+	// }()
+
+	// go func() {
+	// 	defer wg.Done()
+	// 	bytesCount = CountBytes(bytesReader)
+	// }()
+
+	linesCh := make(chan int)
+	wordsCh := make(chan int)
+	bytesCh := make(chan int)
+
+	go func() {
+		defer pw1.Close()
+		defer close(linesCh)
+		linesCh <- CountLines(linesReader)
+	}()
+
+	go func() {
+		defer pw2.Close()
+		defer close(wordsCh)
+		wordsCh <- CountWords(wordsReader)
+	}()
+
+	go func() {
+		defer close(bytesCh)
+		bytesCh <- CountBytes(bytesReader)
+	}()
+
+	linesCount := <-linesCh
+	wordsCount := <-wordsCh
+	bytesCount := <-bytesCh
+
+	return Counts{
+		Words: wordsCount,
+		Lines: linesCount,
 		Bytes: bytesCount,
 	}
 }
