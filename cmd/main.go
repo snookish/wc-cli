@@ -13,6 +13,7 @@ import (
 )
 
 type Result struct {
+	err      error
 	filename string
 	counts   counter.Counts
 }
@@ -36,32 +37,17 @@ func main() {
 		os.Exit(0)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(len(filenames))
-
 	var totals counter.Counts
 	var hasErrorOccurred bool
-	resultCh := make(chan Result, len(filenames))
 
-	for _, filename := range filenames {
-		go func() {
-			defer wg.Done()
+	ch := countFiles(filenames)
+	for res := range ch {
+		if res.err != nil {
+			hasErrorOccurred = true
+			fmt.Fprintln(os.Stderr, "wc:", res.err)
+			continue
+		}
 
-			counts, err := counter.CountFile(filename)
-			if err != nil {
-				hasErrorOccurred = true
-				fmt.Fprintln(os.Stderr, "wc:", err)
-				return
-			}
-
-			resultCh <- Result{counts: counts, filename: filename}
-		}()
-	}
-
-	wg.Wait()
-	close(resultCh)
-
-	for res := range resultCh {
 		totals.Add(res.counts)
 		res.counts.Print(tw, opts, res.filename)
 	}
@@ -72,4 +58,26 @@ func main() {
 	if hasErrorOccurred {
 		os.Exit(1)
 	}
+}
+
+func countFiles(filenames []string) <-chan Result {
+	var wg sync.WaitGroup
+	wg.Add(len(filenames))
+
+	ch := make(chan Result, len(filenames))
+
+	for _, filename := range filenames {
+		go func() {
+			defer wg.Done()
+			counts, err := counter.CountFile(filename)
+			ch <- Result{counts: counts, filename: filename, err: err}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	return ch
 }
