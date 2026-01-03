@@ -89,7 +89,7 @@ func CountFile(path string) (Counts, error) {
 	}
 	defer f.Close()
 
-	return CountAllIOPipe(f), nil
+	return CountAll(f), nil
 }
 
 // CountLines counts newline characters.
@@ -268,6 +268,47 @@ func CountAllIOPipe(r io.Reader) Counts {
 		defer close(bytesCh)
 		bytesCh <- CountBytes(bytesReader)
 	}()
+
+	linesCount := <-linesCh
+	wordsCount := <-wordsCh
+	bytesCount := <-bytesCh
+
+	return Counts{
+		Words: wordsCount,
+		Lines: linesCount,
+		Bytes: bytesCount,
+	}
+}
+
+func CountAllMultiWriter(r io.Reader) Counts {
+	linesReader, linesWriter := io.Pipe()
+	wordsReader, wordsWriter := io.Pipe()
+	bytesReader, bytesWriter := io.Pipe()
+	w := io.MultiWriter(linesWriter, wordsWriter, bytesWriter)
+
+	linesCh := make(chan int)
+	wordsCh := make(chan int)
+	bytesCh := make(chan int)
+
+	go func() {
+		defer close(linesCh)
+		linesCh <- CountLines(linesReader)
+	}()
+
+	go func() {
+		defer close(wordsCh)
+		wordsCh <- CountWords(wordsReader)
+	}()
+
+	go func() {
+		defer close(bytesCh)
+		bytesCh <- CountBytes(bytesReader)
+	}()
+
+	io.Copy(w, r)
+	wordsWriter.Close()
+	linesWriter.Close()
+	bytesWriter.Close()
 
 	linesCount := <-linesCh
 	wordsCount := <-wordsCh

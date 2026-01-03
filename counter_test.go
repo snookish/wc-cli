@@ -337,3 +337,27 @@ func BenchmarkCountAll(b *testing.B) {
 		_ = counter.CountAll(reader)
 	}
 }
+
+func BenchmarkCountAllTeaReader(b *testing.B) {
+	data := strings.Repeat(testText, 10000)
+	for b.Loop() {
+		reader := strings.NewReader(data)
+		_ = counter.CountAllTeaReader(reader)
+	}
+}
+
+func BenchmarkCountAllIOPipe(b *testing.B) {
+	data := strings.Repeat(testText, 10000)
+	for b.Loop() {
+		reader := strings.NewReader(data)
+		_ = counter.CountAllIOPipe(reader)
+	}
+}
+
+func BenchmarkCountAllMultiWriter(b *testing.B) {
+	data := strings.Repeat(testText, 10000)
+	for b.Loop() {
+		reader := strings.NewReader(data)
+		_ = counter.CountAllMultiWriter(reader)
+	}
+}
