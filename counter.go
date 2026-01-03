@@ -2,6 +2,7 @@ package counter
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -88,7 +89,7 @@ func CountFile(path string) (Counts, error) {
 	}
 	defer f.Close()
 
-	return CountAll(f), nil
+	return CountAllTeaReader(f), nil
 }
 
 // CountLines counts newline characters.
@@ -193,4 +194,23 @@ func CountWordsRaw(r io.Reader) int {
 	}
 
 	return n
+}
+
+func CountAllTeaReader(r io.Reader) Counts {
+	buf1 := bytes.Buffer{}
+	buf2 := bytes.Buffer{}
+
+	linesReader := io.TeeReader(r, &buf1)
+	wordsReader := io.TeeReader(&buf1, &buf2)
+	bytesReader := &buf2
+
+	linesCount := CountLines(linesReader)
+	wordsCount := CountWords(wordsReader)
+	bytesCount := CountBytes(bytesReader)
+
+	return Counts{
+		Lines: linesCount,
+		Words: wordsCount,
+		Bytes: bytesCount,
+	}
 }
