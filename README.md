@@ -9,8 +9,6 @@ A small command-line tool written in Go to count words, lines, and bytes/charact
 
 ## Installation
 
-Requires Go 1.18+.
-
 Build locally:
 
 ```sh
@@ -54,7 +52,3 @@ Pipe input:
 ```sh
 cat file.txt | wc-cli -w
 ```
-
-## License
-
-MIT License. See LICENSE file for details.
